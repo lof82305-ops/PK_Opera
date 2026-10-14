@@ -304,7 +304,7 @@ function goStep(n){
  $('back').style.visibility=n===1?'hidden':'visible';
  cv.style.pointerEvents=n===2?'auto':'none';
  renderTabs();renderDots();renderTools();
- $('fs').style.visibility=n===3?'hidden':'visible';
+ $('fs').style.visibility=n===3?'hidden':'visible';if(n<3)markDirty();
  if(n===3){toastEl.style.opacity=0;startAct()}else stopAct();
  if(n<3)toast(n===1?'点选部件 · 换一换五官':HINT[brush]);
 }
@@ -337,16 +337,27 @@ function pose(t){
  $('bd').setAttribute('transform','translate(205 262) rotate('+(pull*1.8)+') scale(1 '+(1+.03*pull)+') translate(-205 -262)');
  $('hd').setAttribute('transform','translate(0 '+(Math.sin(t*2)*.8+pull*1.2)+')');
 }
-function startAct(){
- if(window.__gong)window.__gong();
+var cache=null,dirty=true,pv=0,prepT=0;
+function prep(cb){
+ var ver=++pv;dirty=false;
  svgPng('head',true,function(a){svgPng('beard',false,function(b){
+  if(ver!==pv)return;
+  var i1=new Image(),i2=new Image();i1.src=a;i2.src=b;
+  Promise.all([i1.decode(),i2.decode()]).catch(function(){}).then(function(){if(ver!==pv)return;cache={a:a,b:b,k1:i1,k2:i2};cb&&cb()});
+ })});
+}
+function markDirty(){if(step>2)return;dirty=true;clearTimeout(prepT);prepT=setTimeout(function(){if(step<3)prep()},600)}
+document.addEventListener('pointerup',markDirty);document.addEventListener('click',markDirty);
+function startAct(){
+ function show(){
   if(step!==3)return;
-  $('hdimg').setAttribute('href',a);$('bdimg').setAttribute('href',b);
+  $('hdimg').setAttribute('href',cache.a);$('bdimg').setAttribute('href',cache.b);
   var A=$('act');A.classList.add('on');pose(0);requestAnimationFrame(function(){A.classList.add('vis')});
   cancelAnimationFrame(raf);
   if(window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches){pose(1.6);return}
   var t0=performance.now();(function loop(n){pose((n-t0)/1000);raf=requestAnimationFrame(loop)})(t0);
- })});
+ }
+ if(cache&&!dirty)show();else prep(show);
 }
 function stopAct(){cancelAnimationFrame(raf);var A=$('act');A.classList.remove('on','vis')}
 
@@ -358,10 +369,7 @@ size=SIZES[si].v;renderFace();goStep(1);toastEl.style.opacity=0;clearTimeout(toa
 <script>
 (function(){
 var cov=document.getElementById('cov'),busy=false;
-function gong(){try{var C=new (window.AudioContext||window.webkitAudioContext)(),t=C.currentTime,m=C.createGain();
-m.gain.setValueAtTime(.0001,t);m.gain.exponentialRampToValueAtTime(.35,t+.01);m.gain.exponentialRampToValueAtTime(.0001,t+2.2);m.connect(C.destination);
-[[196,1],[291,.7],[433,.5],[587,.35],[802,.22]].forEach(function(f){var o=C.createOscillator(),v=C.createGain();o.type='sine';o.frequency.setValueAtTime(f[0]*1.06,t);o.frequency.exponentialRampToValueAtTime(f[0],t+.4);v.gain.value=f[1]*.4;o.connect(v);v.connect(m);o.start(t);o.stop(t+2.3)})}catch(e){}}
-window.__gong=gong;function start(){if(busy)return;busy=true;gong();cov.classList.add('out');
+function start(){if(busy)return;busy=true;cov.classList.add('out');
 setTimeout(function(){if(window.__covStart)window.__covStart()},700);
 setTimeout(function(){cov.style.display='none'},1600)}
 cov.addEventListener('click',start);
