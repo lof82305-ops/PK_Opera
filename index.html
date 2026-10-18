@@ -20,7 +20,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 .title{writing-mode:vertical-rl;font-weight:900;font-size:38px;line-height:1.15;letter-spacing:.08em}
 .seal{writing-mode:vertical-rl;background:var(--seal);color:var(--bg);font-size:12px;line-height:1.1;padding:5px 4px;border-radius:2px;letter-spacing:.05em}
 .toast{position:absolute;left:50%;top:8%;transform:translateX(-50%);padding:11px 22px;border-radius:99px;background:var(--tab);color:var(--bg);font-size:13px;letter-spacing:.16em;white-space:nowrap;transition:opacity .4s;pointer-events:none;z-index:3}
-.tools{position:absolute;right:16px;top:84px;display:flex;flex-direction:column;gap:16px;align-items:center}
+.tools{position:absolute;right:16px;top:84px;display:flex;flex-direction:column;gap:16px;align-items:center;z-index:5}
 .tool{background:none;border:0;padding:0;display:flex;flex-direction:column;align-items:center;gap:6px}
 .tool .ring{width:52px;height:52px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;color:var(--sub)}
 .tool em{font-style:normal;font-size:12px;letter-spacing:.2em;color:var(--sub);white-space:nowrap}
@@ -482,8 +482,7 @@ function renderTools(){
  else{
   var sb=tool('size','大小·'+SIZES[si].n,function(){si=(si+1)%SIZES.length;size=SIZES[si].v;renderTools()});
   t.appendChild(sb);
-  t.appendChild(tool('clear','清空',function(){pushHist();ctx.clearRect(0,0,W,H);base();toast('已清空，可点撤销找回')}));
-  t.appendChild(tool('undo','撤销',function(){undo()}));
+  t.appendChild(tool('clear','清空',function(){pushHist();ctx.clearRect(0,0,W,H);base();toast('已清空')}));
  }
 }
 function goStep(n){
